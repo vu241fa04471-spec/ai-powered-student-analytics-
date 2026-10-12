@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Placement Analytics Portal — Smart Campus{% endblock %}
+{% block page_title %}Placement & Career Readiness (Placement Officer){% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card primary">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="stat-label">Total Pool</div>
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-people-fill"></i></div>
+      </div>
+      <div class="stat-value">{{ total_students }}</div>
+      <div class="small text-muted mt-1">Total Enrolled Cohort</div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card success">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="stat-label">Tier-1 Ready</div>
+        <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-patch-check-fill"></i></div>
+      </div>
+      <div class="stat-value text-success">{{ tier_ready_count }}</div>
+      <div class="small text-muted mt-1">High Coding & Aptitude</div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card info">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="stat-label">Offers Secured</div>
+        <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="bi bi-award-fill"></i></div>
+      </div>
+      <div class="stat-value text-info">{{ total_offers }}</div>
+      <div class="small text-muted mt-1">Campus Placement Offers</div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card warning">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="stat-label">Resume Needs Work</div>
+        <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-file-earmark-person-fill"></i></div>
+      </div>
+      <div class="stat-value text-warning">{{ resume_needs_work }}</div>
+      <div class="small text-muted mt-1">ATS Score &lt; 50%</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card card-custom p-4">
+      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-buildings me-2 text-primary"></i>Upcoming Campus Recruitment Drives</h6>
+      <div class="table-responsive">
+        <table class="table table-custom">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Industry</th>
+              <th>Drive Date</th>
+              <th>Eligibility</th>
+              <th class="text-end">Package (LPA)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in upcoming_companies %}
+            <tr>
+              <td class="fw-semibold text-dark">{{ c.name }}</td>
+              <td><span class="badge bg-light text-secondary border">{{ c.industry }}</span></td>
+              <td>{{ c.drive_date|date:"M d, Y" }}</td>
+              <td class="small">CGPA &ge; {{ c.min_cgpa }}, {{ c.allowed_backlogs }} backlogs</td>
+              <td class="text-end fw-bold text-success">{{ c.package_lpa }} LPA</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">No campus drives scheduled currently.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card card-custom p-4">
+      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-charge-fill me-2 text-warning"></i>Placement Action Hub</h6>
+      <p class="text-muted small">Interventions to boost hiring conversion rates:</p>
+      <div class="d-grid gap-2">
+        <a href="{% url 'interventions:intervention_list' %}" class="btn btn-outline-primary text-start p-2">
+          <i class="bi bi-plus-circle me-2"></i>Schedule Coding Bootcamps
+        </a>
+        <a href="{% url 'analytics:risk_dashboard' %}" class="btn btn-outline-secondary text-start p-2">
+          <i class="bi bi-funnel me-2"></i>Filter Placement At-Risk Cohort
+        </a>
+        <a href="{% url 'students:student_list' %}" class="btn btn-outline-secondary text-start p-2">
+          <i class="bi bi-file-earmark-check me-2"></i>Audit Low ATS Resumes
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

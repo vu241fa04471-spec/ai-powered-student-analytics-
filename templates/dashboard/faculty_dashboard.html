@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Faculty Academic Portal — Smart Campus{% endblock %}
+{% block page_title %}Faculty Portal ({{ department.name|default:"Assigned Department" }}){% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card primary">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="stat-label">Department Students</div>
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-people-fill"></i></div>
+      </div>
+      <div class="stat-value">{{ total_dept_students }}</div>
+      <div class="small text-muted mt-1">{{ department.code|default:"Department" }} Roster</div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card info">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="stat-label">Mentored Students</div>
+        <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="bi bi-person-check-fill"></i></div>
+      </div>
+      <div class="stat-value">{{ mentored_count }}</div>
+      <div class="small text-muted mt-1">Direct Advisory</div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card warning">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="stat-label">Attendance Shortages</div>
+        <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-clock-history"></i></div>
+      </div>
+      <div class="stat-value text-warning">{{ attendance_shortages }}</div>
+      <div class="small text-muted mt-1">Students &lt; 75% Attendance</div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card success">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="stat-label">Active Interventions</div>
+        <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-shield-check"></i></div>
+      </div>
+      <div class="stat-value text-success">{{ active_interventions }}</div>
+      <div class="small text-muted mt-1">Assigned to You</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Department At-Risk Students -->
+  <div class="col-lg-7">
+    <div class="card card-custom p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-exclamation-octagon-fill me-2 text-danger"></i>Students Requiring Academic Attention</h6>
+        <span class="badge bg-danger bg-opacity-10 text-danger">High Risk</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-custom">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Semester</th>
+              <th>Risk Probability</th>
+              <th>Outcome Forecast</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in dept_high_risks %}
+            <tr>
+              <td>
+                <div class="fw-semibold text-dark">{{ r.student.full_name }}</div>
+                <div class="small text-muted font-monospace">{{ r.student.student_id }}</div>
+              </td>
+              <td>Sem {{ r.student.current_semester.number }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress flex-grow-1" style="height: 6px;">
+                    <div class="progress-bar bg-danger" style="width: {{ r.risk_probability|floatformat:0 }}00%;"></div>
+                  </div>
+                  <span class="small fw-bold text-danger">{{ r.risk_probability|floatformat:2 }}</span>
+                </div>
+              </td>
+              <td class="small">{{ r.predicted_outcome }}</td>
+              <td>
+                <a href="{% url 'students:student_detail' r.student.student_id %}" class="btn btn-sm btn-outline-primary py-0 px-2">
+                  Analyze
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">No high-risk students flagged in your department.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mentored Students List -->
+  <div class="col-lg-5">
+    <div class="card card-custom p-4">
+      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-people me-2 text-primary"></i>My Mentored Cohort</h6>
+      <div class="list-group list-group-flush">
+        {% for s in mentored_students %}
+        <div class="list-group-item px-0 py-2 border-bottom d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold text-dark">{{ s.full_name }}</div>
+            <div class="small text-muted">{{ s.student_id }} &bull; Sem {{ s.current_semester.number }}</div>
+          </div>
+          <a href="{% url 'students:student_detail' s.student_id %}" class="btn btn-sm btn-light border py-1 px-2">
+            View 360°
+          </a>
+        </div>
+        {% empty %}
+        <div class="text-center py-3 text-muted small">No mentored students assigned currently.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

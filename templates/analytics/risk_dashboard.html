@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}At-Risk Student Matrix — Smart Campus Analytics{% endblock %}
+{% block page_title %}At-Risk Student Predictive Matrix{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <!-- Critical Risk Roster -->
+  <div class="col-lg-8">
+    <div class="card card-custom p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-shield-exclamation text-danger me-2"></i>Students in Academic Jeopardy</h5>
+        <span class="badge bg-danger">{{ critical_risks|length }} High / Critical</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-custom">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Department</th>
+              <th>Risk Level</th>
+              <th>Probability</th>
+              <th>Predicted Outcome</th>
+              <th class="text-end">360° View</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in critical_risks %}
+            <tr>
+              <td>
+                <div class="fw-semibold text-dark">{{ r.student.full_name }}</div>
+                <div class="small text-muted font-monospace">{{ r.student.student_id }}</div>
+              </td>
+              <td>{{ r.student.department.code }}</td>
+              <td>
+                <span class="badge {{ r.badge_class }}">{{ r.get_risk_level_display }}</span>
+              </td>
+              <td class="fw-bold text-danger">{{ r.risk_probability|floatformat:2 }}</td>
+              <td class="small">{{ r.predicted_outcome }}</td>
+              <td class="text-end">
+                <a href="{% url 'students:student_detail' r.student.student_id %}" class="btn btn-sm btn-primary py-1 px-2">
+                  Inspect
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">No high-risk students identified.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unresolved Risk Alerts Feed -->
+  <div class="col-lg-4">
+    <div class="card card-custom p-4">
+      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-bell-fill text-warning me-2"></i>Active Warning Feed</h6>
+      <div class="list-group list-group-flush">
+        {% for ind in unresolved_indicators %}
+        <div class="list-group-item px-0 py-2 border-bottom">
+          <div class="d-flex justify-content-between">
+            <span class="badge {% if ind.severity == 'CRITICAL' %}badge-soft-danger{% else %}badge-soft-warning{% endif %}">{{ ind.severity }}</span>
+            <span class="small text-muted">{{ ind.detected_at|date:"M d" }}</span>
+          </div>
+          <div class="fw-semibold small text-dark mt-1">{{ ind.student.student_id }}: {{ ind.title }}</div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted small">No active warnings.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Placement Overview — Smart Campus Analytics{% endblock %}
+{% block page_title %}Campus Placement & Recruitment Drives{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-lg-7">
+    <div class="card card-custom p-4">
+      <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-building-check text-primary me-2"></i>Visiting Recruitment Partners</h5>
+      <div class="table-responsive">
+        <table class="table table-custom">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Industry</th>
+              <th>Drive Date</th>
+              <th>Eligibility</th>
+              <th class="text-end">Package</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in companies %}
+            <tr>
+              <td class="fw-semibold text-dark">{{ c.name }}</td>
+              <td><span class="badge bg-light text-secondary border">{{ c.industry }}</span></td>
+              <td>{{ c.drive_date|date:"M d, Y" }}</td>
+              <td class="small">CGPA &ge; {{ c.min_cgpa }}</td>
+              <td class="text-end fw-bold text-success">{{ c.package_lpa }} LPA</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center py-4 text-muted">No companies scheduled.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card card-custom p-4">
+      <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-file-earmark-check text-success me-2"></i>Recent Drive Applications</h5>
+      <div class="list-group list-group-flush">
+        {% for app in applications|slice:":8" %}
+        <div class="list-group-item px-0 py-2 border-bottom d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold small text-dark">{{ app.student.student_id }} &rarr; {{ app.company.name }}</div>
+            <div class="small text-muted">{{ app.application_date|date:"M d, Y" }}</div>
+          </div>
+          <span class="badge {% if app.status == 'OFFERED' %}badge-soft-success{% elif app.status == 'REJECTED' %}badge-soft-danger{% else %}badge-soft-primary{% endif %}">
+            {{ app.get_status_display }}
+          </span>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted small">No applications found.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

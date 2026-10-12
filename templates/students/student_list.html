@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Student Directory — Smart Campus Analytics{% endblock %}
+{% block page_title %}Authorized Student Directory{% endblock %}
+
+{% block content %}
+<div class="card card-custom p-4 mb-4">
+  <!-- Search & Filter Controls -->
+  <form method="get" class="row g-2 align-items-center mb-4">
+    <div class="col-md-3">
+      <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Search ID or Student Name...">
+    </div>
+    <div class="col-md-3">
+      <select name="department" class="form-select">
+        <option value="">All Departments</option>
+        {% for d in departments %}
+        <option value="{{ d.id }}" {% if selected_dept == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }} ({{ d.code }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="status" class="form-select">
+        <option value="">All Statuses</option>
+        <option value="ACTIVE" {% if selected_status == 'ACTIVE' %}selected{% endif %}>Active Enrolled</option>
+        <option value="AT_RISK" {% if selected_status == 'AT_RISK' %}selected{% endif %}>At Risk</option>
+        <option value="ON_LEAVE" {% if selected_status == 'ON_LEAVE' %}selected{% endif %}>On Leave</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+    </div>
+    <div class="col-md-2">
+      <a href="{% url 'students:student_list' %}" class="btn btn-outline-secondary w-100">Reset</a>
+    </div>
+  </form>
+
+  <!-- Students Table -->
+  <div class="table-responsive">
+    <table class="table table-custom">
+      <thead>
+        <tr>
+          <th>Student ID</th>
+          <th>Student Name</th>
+          <th>Department & Program</th>
+          <th>Semester</th>
+          <th>Status</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td><code class="fw-bold">{{ s.student_id }}</code></td>
+          <td>
+            <div class="fw-semibold text-dark">{{ s.full_name }}</div>
+            <div class="small text-muted">{{ s.email }}</div>
+          </td>
+          <td>
+            <div>{{ s.department.code }}</div>
+            <div class="small text-muted">{{ s.program.name }}</div>
+          </td>
+          <td>Sem {{ s.current_semester.number }} (Sec {{ s.section }})</td>
+          <td>
+            {% if s.enrollment_status == 'ACTIVE' %}
+            <span class="badge badge-soft-success">Active</span>
+            {% elif s.enrollment_status == 'AT_RISK' %}
+            <span class="badge badge-soft-danger">At Risk</span>
+            {% else %}
+            <span class="badge badge-soft-warning">{{ s.get_enrollment_status_display }}</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <a href="{% url 'students:student_detail' s.student_id %}" class="btn btn-sm btn-primary py-1 px-3">
+              360° Profile <i class="bi bi-arrow-right"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center py-5 text-muted">No students found matching your criteria or authorization scope.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&department={{ selected_dept }}&status={{ selected_status }}">Previous</a></li>
+      {% endif %}
+      <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&department={{ selected_dept }}&status={{ selected_status }}">Next</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

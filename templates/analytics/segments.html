@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Student Cohorts & Segments — Smart Campus Analytics{% endblock %}
+{% block page_title %}Behavioral Student Cohorts & Segments{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  {% for seg in segments %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card card-custom p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="badge" style="background-color: {{ seg.badge_color }}; color: #fff;">{{ seg.code }}</span>
+        <span class="badge bg-light text-dark border">{{ seg.students.count }} Students</span>
+      </div>
+      <h5 class="fw-bold text-dark mb-2">{{ seg.name }}</h5>
+      <p class="text-muted small mb-3">{{ seg.description }}</p>
+      
+      <div class="p-2 bg-light rounded small text-muted mb-3">
+        <strong>Criteria:</strong> {{ seg.criteria_summary }}
+      </div>
+
+      <div class="mt-auto pt-3 border-top">
+        <h6 class="small fw-bold text-muted text-uppercase mb-2">Sample Students</h6>
+        <div class="d-flex flex-wrap gap-1">
+          {% for s in seg.students.all|slice:":4" %}
+          <a href="{% url 'students:student_detail' s.student_id %}" class="badge bg-light text-primary border text-decoration-none">
+            {{ s.student_id }}
+          </a>
+          {% empty %}
+          <span class="text-muted small">No students assigned.</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center py-5 text-muted">No student segments configured.</div>
+  {% endfor %}
+</div>
+{% endblock %}

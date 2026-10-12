@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Sign In — Smart Campus Analytics{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="col-md-6 col-lg-5 col-xl-4">
+    <div class="card card-custom border-0 shadow-lg p-4">
+      <div class="text-center mb-4">
+        <div class="d-inline-flex p-3 bg-primary bg-opacity-10 text-primary rounded-circle mb-3">
+          <i class="bi bi-mortarboard-fill fs-2"></i>
+        </div>
+        <h3 class="fw-bold text-dark mb-1">Smart Campus Analytics</h3>
+        <p class="text-muted small">AI-Powered Student Success Platform</p>
+      </div>
+
+      <form method="post" action="{% url 'accounts:login' %}">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger py-2 px-3 small mb-3">
+          {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold text-secondary">Username or Institutional ID</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+          <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label small fw-semibold text-secondary">Password</label>
+          {{ form.password }}
+          {% if form.password.errors %}
+          <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2 fs-6 fw-semibold shadow-sm">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+        </button>
+      </form>
+
+      <!-- Quick Demo Credentials Helper -->
+      <div class="mt-4 pt-3 border-top">
+        <div class="small fw-bold text-muted text-uppercase mb-2 text-center" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+          Quick Demo Accounts (Seed Data)
+        </div>
+        <div class="d-grid gap-1">
+          <button class="btn btn-sm btn-outline-secondary text-start py-1 px-2" onclick="fillCredentials('admin', 'admin123')">
+            <span class="badge bg-danger me-1">Admin</span> <strong>admin</strong> / admin123
+          </button>
+          <button class="btn btn-sm btn-outline-secondary text-start py-1 px-2" onclick="fillCredentials('faculty_cse', 'faculty123')">
+            <span class="badge bg-primary me-1">Faculty</span> <strong>faculty_cse</strong> / faculty123
+          </button>
+          <button class="btn btn-sm btn-outline-secondary text-start py-1 px-2" onclick="fillCredentials('placement_head', 'placement123')">
+            <span class="badge bg-info text-dark me-1">Placement</span> <strong>placement_head</strong> / placement123
+          </button>
+          <button class="btn btn-sm btn-outline-secondary text-start py-1 px-2" onclick="fillCredentials('student_1', 'student123')">
+            <span class="badge bg-success me-1">Student</span> <strong>student_1</strong> / student123
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function fillCredentials(user, pass) {
+  document.getElementById('username_input').value = user;
+  document.getElementById('password_input').value = pass;
+}
+</script>
+{% endblock %}

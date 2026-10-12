@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}403 Forbidden — Smart Campus Analytics{% endblock %}
+{% block page_title %}Access Denied{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+  <div class="col-md-6 text-center">
+    <div class="card card-custom p-5 border-0 shadow-sm">
+      <div class="text-danger mb-3">
+        <i class="bi bi-shield-lock-fill" style="font-size: 3.5rem;"></i>
+      </div>
+      <h3 class="fw-bold text-dark mb-2">403 — Unauthorized Access</h3>
+      <p class="text-muted mb-4">
+        {{ message|default:"You do not possess the required institutional role or permissions to access this student record or resource." }}
+      </p>
+      <div class="d-flex justify-content-center gap-2">
+        <a href="{% url 'dashboard' %}" class="btn btn-primary px-4">
+          <i class="bi bi-arrow-left me-2"></i>Return to Dashboard
+        </a>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary px-3">
+          Sign In as Different User
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

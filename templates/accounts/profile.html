@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — Smart Campus Analytics{% endblock %}
+{% block page_title %}User Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card card-custom p-4 mb-4">
+      <div class="d-flex align-items-center gap-4 mb-4 pb-3 border-bottom">
+        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fs-1 fw-bold" style="width: 80px; height: 80px;">
+          {{ user_obj.first_name|default:user_obj.username|make_list|first|upper }}
+        </div>
+        <div>
+          <h4 class="fw-bold mb-1">{{ user_obj.get_full_name|default:user_obj.username }}</h4>
+          <div class="text-muted small mb-2"><i class="bi bi-envelope me-1"></i>{{ user_obj.email|default:"No email configured" }}</div>
+          <span class="badge {{ user_obj.role_badge_class }} px-3 py-1">{{ user_obj.get_role_display }}</span>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="text-muted small fw-semibold">Username</label>
+          <div class="fw-medium">{{ user_obj.username }}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small fw-semibold">Institutional ID</label>
+          <div class="fw-medium">{{ user_obj.employee_or_student_id|default:"N/A" }}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small fw-semibold">Department</label>
+          <div class="fw-medium">{{ user_obj.department.name|default:"Not assigned" }}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small fw-semibold">Designation</label>
+          <div class="fw-medium">{{ user_obj.designation|default:"Standard" }}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small fw-semibold">Phone Number</label>
+          <div class="fw-medium">{{ user_obj.phone_number|default:"Not provided" }}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small fw-semibold">Account Created</label>
+          <div class="fw-medium">{{ user_obj.date_joined|date:"M d, Y" }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

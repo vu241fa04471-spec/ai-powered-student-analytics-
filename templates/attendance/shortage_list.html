@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Attendance Shortage Register — Smart Campus Analytics{% endblock %}
+{% block page_title %}Statutory Attendance Shortage Register (< 75%){% endblock %}
+
+{% block content %}
+<div class="card card-custom p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h5 class="fw-bold mb-1 text-danger"><i class="bi bi-clock-history me-2"></i>Attendance Shortage Watchlist</h5>
+      <p class="text-muted small mb-0">Students below 75% attendance threshold subject to exam debarment.</p>
+    </div>
+    <span class="badge bg-danger">{{ shortages|length }} Alerts</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-custom">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Department</th>
+          <th>Subject</th>
+          <th>Semester</th>
+          <th>Conducted vs Attended</th>
+          <th>Attendance %</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in shortages %}
+        <tr>
+          <td>
+            <div class="fw-semibold text-dark">{{ item.student.full_name }}</div>
+            <div class="small text-muted font-monospace">{{ item.student.student_id }}</div>
+          </td>
+          <td>{{ item.student.department.code }}</td>
+          <td>
+            <div>{{ item.subject.name }}</div>
+            <div class="small text-muted font-monospace">{{ item.subject.code }}</div>
+          </td>
+          <td>Sem {{ item.semester.number }}</td>
+          <td>{{ item.classes_attended }} / {{ item.total_classes }} classes</td>
+          <td>
+            <span class="badge badge-soft-danger fs-6">{{ item.attendance_percentage }}%</span>
+          </td>
+          <td class="text-end">
+            <a href="{% url 'students:student_detail' item.student.student_id %}" class="btn btn-sm btn-outline-danger py-1 px-3">
+              Action Plan <i class="bi bi-arrow-right"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-4 text-muted">No attendance shortage alerts currently active in your scope.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

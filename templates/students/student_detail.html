@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% block title %}Student 360° Profile — {{ student.student_id }}{% endblock %}
+{% block page_title %}{{ student.full_name }} ({{ student.student_id }}){% endblock %}
+
+{% block content %}
+<!-- Student Header Card -->
+<div class="card card-custom p-4 mb-4 border-0 shadow-sm bg-white">
+  <div class="row align-items-center">
+    <div class="col-lg-8 d-flex align-items-center gap-4">
+      <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fs-1 fw-bold flex-shrink-0" style="width: 80px; height: 80px;">
+        {{ student.full_name|make_list|first|upper }}
+      </div>
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <h3 class="fw-bold mb-0 text-dark">{{ student.full_name }}</h3>
+          <span class="badge {% if student.enrollment_status == 'ACTIVE' %}badge-soft-success{% elif student.enrollment_status == 'AT_RISK' %}badge-soft-danger{% else %}badge-soft-warning{% endif %}">
+            {{ student.get_enrollment_status_display }}
+          </span>
+        </div>
+        <div class="text-muted small mb-2 font-monospace">
+          ID: <strong>{{ student.student_id }}</strong> &bull; Dept: <strong>{{ student.department.name }}</strong> &bull; {{ student.program.name }} &bull; Sem {{ student.current_semester.number }} (Sec {{ student.section }})
+        </div>
+        <div class="d-flex flex-wrap gap-2 small">
+          <span class="badge bg-light text-secondary border"><i class="bi bi-envelope me-1"></i>{{ student.email }}</span>
+          <span class="badge bg-light text-secondary border"><i class="bi bi-calendar me-1"></i>Admitted: {{ student.admission_year }}</span>
+          {% if student.mentor %}
+          <span class="badge bg-light text-primary border"><i class="bi bi-person-badge me-1"></i>Mentor: {{ student.mentor.get_full_name }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Score Highlights -->
+    <div class="col-lg-4 mt-3 mt-lg-0 text-lg-end">
+      <div class="d-inline-flex gap-3 text-start">
+        <div class="p-2 px-3 bg-light rounded text-center border">
+          <div class="text-muted small fw-semibold">CGPA</div>
+          <div class="fs-4 fw-bold text-primary">{{ student.get_latest_cgpa|floatformat:2 }}</div>
+        </div>
+        <div class="p-2 px-3 bg-light rounded text-center border">
+          <div class="text-muted small fw-semibold">ATTENDANCE</div>
+          <div class="fs-4 fw-bold {% if student.get_overall_attendance_percentage < 75 %}text-danger{% else %}text-success{% endif %}">
+            {{ student.get_overall_attendance_percentage }}%
+          </div>
+        </div>
+        {% if success_snapshot %}
+        <div class="p-2 px-3 bg-light rounded text-center border">
+          <div class="text-muted small fw-semibold">AI SUCCESS</div>
+          <div class="fs-4 fw-bold text-info">{{ success_snapshot.composite_success_score|floatformat:0 }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation Tabs -->
+<ul class="nav nav-tabs mb-4 border-bottom-0" id="profileTabs" role="tablist">
+  <li class="nav-item">
+    <button class="nav-link active fw-semibold" id="academics-tab" data-bs-toggle="tab" data-bs-target="#academics" type="button" role="tab">
+      <i class="bi bi-mortarboard me-1"></i>Academics & Grades
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link fw-semibold" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab">
+      <i class="bi bi-clock-history me-1"></i>Attendance Matrix
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link fw-semibold" id="lms-tab" data-bs-toggle="tab" data-bs-target="#lms" type="button" role="tab">
+      <i class="bi bi-laptop me-1"></i>LMS Engagement
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link fw-semibold" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+      <i class="bi bi-cpu me-1 text-primary"></i>AI Explainable Risk
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link fw-semibold" id="placements-tab" data-bs-toggle="tab" data-bs-target="#placements" type="button" role="tab">
+      <i class="bi bi-briefcase me-1"></i>Placement Readiness
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link fw-semibold" id="interventions-tab" data-bs-toggle="tab" data-bs-target="#interventions" type="button" role="tab">
+      <i class="bi bi-shield-check me-1"></i>Interventions ({{ interventions|length }})
+    </button>
+  </li>
+</ul>
+
+<!-- Tab Contents -->
+<div class="tab-content" id="profileTabsContent">
+
+  <!-- 1. ACADEMICS TAB -->
+  <div class="tab-pane fade show active" id="academics" role="tabpanel">
+    <div class="card card-custom p-4 mb-4">
+      <h6 class="fw-bold text-dark mb-3">Semester-wise Academic Performance History</h6>
+      <div class="table-responsive">
+        <table class="table table-custom">
+          <thead>
+            <tr>
+              <th>Semester</th>
+              <th>SGPA</th>
+              <th>CGPA</th>
+              <th>Credits Earned / Reg.</th>
+              <th>Semester Backlogs</th>
+              <th>Cumulative Backlogs</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rec in academic_records %}
+            <tr>
+              <td class="fw-semibold">Sem {{ rec.semester.number }}</td>
+              <td class="fw-bold text-primary">{{ rec.sgpa }}</td>
+              <td class="fw-bold text-success">{{ rec.cgpa }}</td>
+              <td>{{ rec.credits_earned }} / {{ rec.credits_registered }}</td>
+              <td>{{ rec.backlogs_in_semester }}</td>
+              <td>
+                {% if rec.cumulative_backlogs > 0 %}
+                <span class="badge bg-danger">{{ rec.cumulative_backlogs }}</span>
+                {% else %}
+                <span class="badge bg-success">0</span>
+                {% endif %}
+              </td>
+              <td><span class="badge {% if rec.status == 'PASS' %}badge-soft-success{% else %}badge-soft-danger{% endif %}">{{ rec.get_status_display }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center py-4 text-muted">No academic records logged yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ATTENDANCE TAB -->
+  <div class="tab-pane fade" id="attendance" role="tabpanel">
+    <div class="card card-custom p-4 mb-4">
+      <h6 class="fw-bold text-dark mb-3">Subject-wise Attendance Breakdown</h6>
+      <div class="table-responsive">
+        <table class="table table-custom">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Conducted Classes</th>
+              <th>Attended Classes</th>
+              <th>Attendance %</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for att in attendance_summaries %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ att.subject.name }}</div>
+                <div class="small text-muted font-monospace">{{ att.subject.code }}</div>
+              </td>
+              <td>{{ att.total_classes }}</td>
+              <td>{{ att.classes_attended }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress flex-grow-1" style="height: 6px;">
+                    <div class="progress-bar {% if att.attendance_percentage < 75 %}bg-danger{% else %}bg-success{% endif %}" style="width: {{ att.attendance_percentage }}%;"></div>
+                  </div>
+                  <span class="fw-bold small {% if att.attendance_percentage < 75 %}text-danger{% endif %}">{{ att.attendance_percentage }}%</span>
+                </div>
+              </td>
+              <td>
+                {% if att.is_shortage %}
+                <span class="badge badge-soft-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Shortage</span>
+                {% else %}
+                <span class="badge badge-soft-success">Satisfactory</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center py-4 text-muted">No attendance summaries recorded.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. LMS TAB -->
+  <div class="tab-pane fade" id="lms" role="tabpanel">
+    <div class="card card-custom p-4 mb-4">
+      <h6 class="fw-bold text-dark mb-3">Digital Platform & LMS Engagement</h6>
+      {% if latest_lms %}
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <div class="p-3 bg-light rounded text-center border">
+            <div class="text-muted small">Total Logins</div>
+            <div class="fs-4 fw-bold text-primary">{{ latest_lms.total_logins }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-3 bg-light rounded text-center border">
+            <div class="text-muted small">Completed Assignments</div>
+            <div class="fs-4 fw-bold text-success">{{ latest_lms.assignments_completed }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-3 bg-light rounded text-center border">
+            <div class="text-muted small">Missed Submissions</div>
+            <div class="fs-4 fw-bold text-danger">{{ latest_lms.assignments_missed }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-3 bg-light rounded text-center border">
+            <div class="text-muted small">Resources Accessed</div>
+            <div class="fs-4 fw-bold text-info">{{ latest_lms.resources_accessed_count }}</div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center py-4 text-muted">No LMS activity recorded for this student.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 4. AI RISK & ANALYTICS TAB -->
+  <div class="tab-pane fade" id="analytics" role="tabpanel">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card card-custom p-4 h-100">
+          <h6 class="fw-bold text-dark mb-3"><i class="bi bi-shield-exclamation text-danger me-2"></i>Academic Risk Assessment</h6>
+          {% if risk_assessment %}
+          <div class="p-3 bg-light rounded border mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge {{ risk_assessment.badge_class }} fs-6">{{ risk_assessment.get_risk_level_display }}</span>
+              <span class="small text-muted font-monospace">Model: {{ risk_assessment.model_version }}</span>
+            </div>
+            <div class="small text-muted">Risk Probability: <strong>{{ risk_assessment.risk_probability|floatformat:2 }}</strong></div>
+            <div class="small text-muted mt-1">Predicted Outcome: <strong>{{ risk_assessment.predicted_outcome }}</strong></div>
+          </div>
+
+          <h6 class="small fw-bold text-uppercase text-muted">Key Risk Drivers (Explainable AI)</h6>
+          <ul class="list-group list-group-flush small">
+            {% for driver in risk_assessment.key_drivers %}
+            <li class="list-group-item px-0 py-2 border-bottom d-flex justify-content-between">
+              <span>{{ driver.factor }}</span>
+              <span class="badge bg-danger bg-opacity-10 text-danger">{{ driver.impact }}</span>
+            </li>
+            {% empty %}
+            <li class="list-group-item px-0 py-2 text-muted">No negative drivers identified.</li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="text-center py-4 text-muted">No risk assessment generated yet.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card card-custom p-4 h-100">
+          <h6 class="fw-bold text-dark mb-3"><i class="bi bi-bell-fill text-warning me-2"></i>Active Risk Indicators & Warnings</h6>
+          <div class="list-group list-group-flush">
+            {% for ind in risk_indicators %}
+            <div class="list-group-item px-0 py-2 border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="badge {% if ind.severity == 'CRITICAL' %}badge-soft-danger{% else %}badge-soft-warning{% endif %}">{{ ind.severity }}</span>
+                <span class="small text-muted">{{ ind.detected_at|date:"M d, Y" }}</span>
+              </div>
+              <div class="fw-semibold text-dark mt-1">{{ ind.title }}</div>
+              <div class="small text-muted">{{ ind.details }}</div>
+            </div>
+            {% empty %}
+            <div class="text-center py-4 text-muted">No unresolved risk indicators.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. PLACEMENTS TAB -->
+  <div class="tab-pane fade" id="placements" role="tabpanel">
+    <div class="card card-custom p-4 mb-4">
+      <h6 class="fw-bold text-dark mb-3">Placement Readiness & Drive Applications</h6>
+      {% if placement_assessment %}
+      <div class="p-3 bg-light rounded border mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="badge bg-primary">{{ placement_assessment.get_readiness_status_display }}</span>
+          <span class="fw-bold text-dark">Score: {{ placement_assessment.readiness_score }}%</span>
+        </div>
+        <div class="small text-muted mt-2">Recommended Focus: {{ placement_assessment.recommended_focus }}</div>
+      </div>
+      {% endif %}
+
+      <h6 class="small fw-bold text-uppercase text-muted mb-2">Campus Drive Applications</h6>
+      <div class="table-responsive">
+        <table class="table table-custom">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Applied Date</th>
+              <th>Status</th>
+              <th>Package</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in placement_applications %}
+            <tr>
+              <td class="fw-semibold">{{ app.company.name }}</td>
+              <td>{{ app.application_date|date:"M d, Y" }}</td>
+              <td><span class="badge {% if app.status == 'OFFERED' %}badge-soft-success{% else %}badge-soft-primary{% endif %}">{{ app.get_status_display }}</span></td>
+              <td>{{ app.package_offered_lpa|default:app.company.package_lpa }} LPA</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center py-3 text-muted">No drive applications submitted.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. INTERVENTIONS TAB -->
+  <div class="tab-pane fade" id="interventions" role="tabpanel">
+    <div class="card card-custom p-4 mb-4">
+      <h6 class="fw-bold text-dark mb-3">Formal Mentorship & Support Interventions</h6>
+      <div class="list-group list-group-flush">
+        {% for inv in interventions %}
+        <div class="list-group-item px-0 py-3 border-bottom">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <span class="badge badge-soft-primary me-2">{{ inv.intervention_type }}</span>
+              <span class="badge {% if inv.status == 'ACTIVE' %}badge-soft-warning{% else %}badge-soft-success{% endif %}">{{ inv.get_status_display }}</span>
+            </div>
+            <span class="small text-muted">Assigned: {{ inv.assigned_to.get_full_name }}</span>
+          </div>
+          <p class="mb-2 text-dark small fw-medium">{{ inv.action_plan }}</p>
+          <div class="text-muted small">
+            Timeline: {{ inv.start_date|date:"M d, Y" }} &rarr; Target: {{ inv.target_completion_date|date:"M d, Y" }}
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">No formal interventions currently opened for this student.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
